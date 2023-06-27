@@ -1,6 +1,7 @@
 from django.db import models
 from froala_editor.fields import FroalaField
 # Create your models here.
+from datetime import datetime
 
 
 class Student(models.Model):
@@ -98,15 +99,19 @@ class Announcement(models.Model):
     datetime = models.DateTimeField(auto_now_add=True, null=False)
     description = FroalaField()
 
+    post_date = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         verbose_name_plural = "Announcements"
         ordering = ['-datetime']
 
     def __str__(self):
         return self.datetime.strftime("%d-%b-%y, %I:%M %p")
+        # return self.datetime.strptime("%d-%b-%y, %I:%M %p")
 
     def post_date(self):
         return self.datetime.strftime("%d-%b-%y, %I:%M %p")
+        # return self.datetime.strptime("%d-%b-%y, %I:%M %p")
 
 
 class Assignment(models.Model):
