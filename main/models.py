@@ -4,8 +4,10 @@ import random
 import string
 # Create your models here.
 from datetime import datetime
-
-
+from django.contrib.auth.models import User
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    reset_otp = models.CharField(max_length=6, null=True, blank=True)
 class Student(models.Model):
     student_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=100, null=False)
