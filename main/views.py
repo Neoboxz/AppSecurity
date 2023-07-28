@@ -8,15 +8,11 @@ from django.http import HttpResponseRedirect
 from .forms import AnnouncementForm, AssignmentForm, MaterialForm
 from django import forms
 from django.core import validators
-from django.core.mail import send_mail
-from .models import Student, Faculty
-import random
-import pyotp
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.shortcuts import render, redirect
-from .forms import PasswordResetForm
-from django.contrib.auth.models import User
+from .models import Student, Faculty
+from .utils import generate_otp
 
 
 from django import forms
@@ -31,53 +27,93 @@ from django.core.mail import send_mail
 from .forms import ForgotPasswordForm, OTPForm, PasswordResetForm
 from .models import Student
 
-def send_otp_email(email, otp):
-    subject = 'Password Reset OTP'
-    message = f'Your OTP for password reset is: {otp}'
-    from_email = 'your_email@example.com'  # Replace with your email address
-    send_mail(subject, message, from_email, [email])
 
-def reset_password(request):
+
+def forgot_password(request):
+    if request.method == 'POST':
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+
+            try:
+                student = Student.objects.get(email=email)
+            except Student.DoesNotExist:
+                student = None
+
+            if student:
+                # Generate OTP and send it via email
+                otp = Student.generate_otp()
+                student.otp = otp
+                student.save()
+
+                subject = 'Password Reset OTP'
+                message = f'Your OTP for password reset is: {otp}'
+                from_email = 'your_email@example.com'  # Replace with your email
+                recipient_list = [student.email]
+
+                send_mail(subject, message, from_email, recipient_list)
+
+                # Redirect to OTP verification page
+                return redirect('otp_verification_reset', id=student.id)
+            else:
+                error_message = 'No user found with this email.'
+        else:
+            error_message = 'Invalid form data.'
+    else:
+        form = ForgotPasswordForm()
+        error_message = None
+
+    context = {'form': form, 'error_message': error_message}
+    return render(request, 'forgot_password.html', context)
+
+def otp_verification_reset(request, id):
+    try:
+        student = Student.objects.get(id=id)
+    except Student.DoesNotExist:
+        return redirect('forgot_password')
+
+    if request.method == 'POST':
+        form = OTPForm(request.POST)
+        if form.is_valid():
+            otp = form.cleaned_data['otp']
+            if student.otp == otp:
+                # OTP verification successful, redirect to password reset page
+                return redirect('password_reset', id=student.id)
+            else:
+                error_message = 'Invalid OTP.'
+        else:
+            error_message = 'Invalid form data.'
+    else:
+        form = OTPForm()
+        error_message = None
+
+    context = {'form': form, 'error_message': error_message}
+    return render(request, 'otp_verification_reset.html', context)
+
+def password_reset(request, id):
+    try:
+        student = Student.objects.get(id=id)
+    except Student.DoesNotExist:
+        return redirect('forgot_password')
+
     if request.method == 'POST':
         form = PasswordResetForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
-            try:
-                user = User.objects.get(email=email)
-                otp = str(random.randint(100000, 999999))
-                user.profile.reset_otp = otp
-                user.profile.save()
-                send_otp_email(email, otp)  # Function to send OTP via email
-                return redirect('verify_otp')
-            except User.DoesNotExist:
-                messages.error(request, 'User with this email does not exist.')
+            new_password = form.cleaned_data['new_password']
+            student.password = new_password
+            student.save()
+
+            # Password reset successful, redirect to login page
+            messages.success(request, 'Password reset successful. You can now login with your new password.')
+            return redirect('std_login')
+        else:
+            error_message = 'Invalid form data.'
     else:
         form = PasswordResetForm()
+        error_message = None
 
-    return render(request, 'reset_password.html', {'form': form})
-
-def verify_otp(request):
-    if request.method == 'POST':
-        otp_entered = request.POST['otp']
-        user = request.user
-        if user.profile.reset_otp == otp_entered:
-            return redirect('set_new_password')
-        else:
-            messages.error(request, 'Invalid OTP. Please try again.')
-    return render(request, 'verify_otp.html')
-
-def set_new_password(request):
-    if request.method == 'POST':
-        new_password = request.POST['new_password']
-        user = request.user
-        user.set_password(new_password)
-        user.profile.reset_otp = None
-        user.profile.save()
-        user.save()
-        messages.success(request, 'Password has been reset successfully.')
-        return redirect('login')
-    return render(request, 'set_new_password.html')
-
+    context = {'form': form, 'error_message': error_message}
+    return render(request, 'password_reset.html', context)
 def is_student_authorised(request, code):
     course = Course.objects.get(code=code)
     if request.session.get('student_id') and course in Student.objects.get(student_id=request.session['student_id']).course.all():
