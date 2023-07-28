@@ -9,15 +9,9 @@ from .forms import AnnouncementForm, AssignmentForm, MaterialForm
 from django import forms
 from django.core import validators
 
-from django.shortcuts import render
-from django.contrib.auth.models import User
-from django.core.mail import send_mail
-from django.contrib import messages
-from django.urls import reverse
-from django.shortcuts import redirect
+
 
 from django import forms
-
 
 
 class LoginForm(forms.Form):
