@@ -9,9 +9,37 @@ from .forms import AnnouncementForm, AssignmentForm, MaterialForm
 from django import forms
 from django.core import validators
 
+from django.shortcuts import render
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.urls import reverse
+from django.shortcuts import redirect
 
 from django import forms
 
+def change_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            # Generate a one-time use link for password reset
+            reset_link = reverse('password_reset_confirm', args=[user.pk])
+            reset_link = request.build_absolute_uri(reset_link)
+
+            # Send password reset email
+            subject = 'Password Reset for Your eLMS Account'
+            message = f'Click on the link below to reset your password:\n{reset_link}'
+            from_email = 'your_email@gmail.com'  # Replace with your email address
+            recipient_list = [user.email]
+
+            send_mail(subject, message, from_email, recipient_list)
+
+            messages.success(request, 'Password reset email sent. Please check your email.')
+        except User.DoesNotExist:
+            messages.error(request, 'No user with this email address found.')
+
+    return render(request, 'change_password.html')
 
 class LoginForm(forms.Form):
     id = forms.CharField(label='ID', max_length=10, validators=[
