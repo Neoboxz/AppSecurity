@@ -21,12 +21,10 @@ class Student(models.Model):
                               null=False, default='profile_pics/default_student.png')
     department = models.ForeignKey(
         'Department', on_delete=models.CASCADE, null=False, blank=False, related_name='students')
-    otp = models.CharField(max_length=6, blank=True, null=True)
 
-    # Function to generate OTP
-    @staticmethod
-    def generate_otp():
-        return ''.join(random.choices(string.digits, k=6))
+
+
+
     def delete(self, *args, **kwargs):
         if self.photo != 'profile_pics/default_student.png':
             self.photo.delete()
