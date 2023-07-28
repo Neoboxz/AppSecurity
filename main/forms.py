@@ -1,6 +1,28 @@
 from django import forms
 from froala_editor.widgets import FroalaEditor
 from .models import Announcement, Assignment, Material
+from django import forms
+from django.core.validators import EmailValidator, RegexValidator
+from .models import Student
+
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(label='Email', validators=[EmailValidator])
+
+class OTPForm(forms.Form):
+    otp = forms.CharField(label='OTP', max_length=6, validators=[RegexValidator(r'^\d{6}$', 'Please enter a valid 6-digit OTP.')])
+
+class PasswordResetForm(forms.Form):
+    new_password = forms.CharField(widget=forms.PasswordInput)
+    confirm_new_password = forms.CharField(widget=forms.PasswordInput)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_new_password = cleaned_data.get('confirm_new_password')
+
+        if new_password and confirm_new_password:
+            if new_password != confirm_new_password:
+                raise forms.ValidationError("Passwords do not match.")
 
 
 class AnnouncementForm(forms.ModelForm):
