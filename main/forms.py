@@ -3,6 +3,7 @@ from froala_editor.widgets import FroalaEditor
 from .models import Announcement, Assignment, Material
 from django import forms
 from django.core.validators import EmailValidator, RegexValidator
+
 from .models import Student
 
 class ForgotPasswordForm(forms.Form):
@@ -23,7 +24,6 @@ class PasswordResetForm(forms.Form):
         if new_password and confirm_new_password:
             if new_password != confirm_new_password:
                 raise forms.ValidationError("Passwords do not match.")
-
 
 class AnnouncementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
