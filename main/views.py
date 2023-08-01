@@ -75,7 +75,7 @@ def verify_otp(request):
             return render(request, 'verify_otp.html', {'error': 'Invalid OTP'})
 
     return render(request, 'verify_otp.html')
-
+111
 def reset_password(request, reset_token):
     # Check if the reset_token matches the OTP stored in the session
     if request.session.get('reset_otp') == reset_token:
