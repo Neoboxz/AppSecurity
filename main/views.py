@@ -10,6 +10,16 @@ from django import forms
 from django.core import validators
 
 
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+
+from django.core.mail import send_mail
+from django.conf import settings
+import random
+import string
+
+
 from django import forms
 
 
@@ -17,6 +27,72 @@ class LoginForm(forms.Form):
     id = forms.CharField(label='ID', max_length=10, validators=[
                          validators.RegexValidator(r'^\d+$', 'Please enter a valid number.')])
     password = forms.CharField(widget=forms.PasswordInput)
+
+def forget_password(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        user = Student.objects.filter(email=email).all()
+        if user:
+            # Generate a random OTP
+            otp = ''.join(random.choices(string.digits, k=6))
+
+            # Save the OTP and the user's email in session for verification later
+            request.session['reset_otp'] = otp
+            request.session['reset_email'] = email
+
+            # Send the OTP to the user's email
+            subject = 'Password Reset OTP'
+            message = f'Your OTP for password reset is: {otp}'
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = [email]
+            send_mail(subject, message, from_email, recipient_list)
+
+            return redirect('verify_otp')
+        else:
+            # User with the provided email does not exist
+            return render(request, 'forget_password.html', {'error': 'User with this email does not exist.'})
+
+    return render(request, 'forget_password.html')
+
+def verify_otp(request):
+    if request.method == 'POST':
+        otp_entered = request.POST['otp']
+        otp_stored = request.session.get('reset_otp')
+        if otp_entered == otp_stored:
+            return redirect('reset_password', reset_token=otp_entered)
+        else:
+            return render(request, 'verify_otp.html', {'error': 'Invalid OTP'})
+
+    return render(request, 'verify_otp.html')
+
+def reset_password(request, reset_token):
+    # Check if the reset_token matches the OTP stored in the session
+    if request.session.get('reset_otp') == reset_token:
+        if request.method == 'POST':
+            new_password = request.POST['new_password']
+            confirm_password = request.POST['confirm_password']
+            email = request.session.get('reset_email')
+            user = Student.objects.filter(email=email).first()
+
+            # Check if the new password matches the confirm password
+            if new_password == confirm_password:
+                # Set the new password for the user
+                user.password = new_password
+                user.save()
+
+                # Password reset successful, clear the session data
+                del request.session['reset_otp']
+                del request.session['reset_email']
+
+                # Redirect to a success page or login page
+                return redirect('std_login')
+            else:
+                return render(request, 'reset_password.html', {'error': 'Passwords do not match.'})
+
+        return render(request, 'reset_password.html')
+    else:
+        # Invalid reset token
+        return redirect('forget_password')
 
 
 def is_student_authorised(request, code):

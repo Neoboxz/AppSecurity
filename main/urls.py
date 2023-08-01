@@ -49,4 +49,7 @@ urlpatterns = [
          name='changePhotoFaculty'),
     path('search/', views.search, name='search'),
     path('error/', views.error, name='error'),
+    path('forget-password/', views.forget_password, name='forget_password'),
+    path('reset-password/<str:reset_token>/', views.reset_password, name='reset_password'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
 ]
