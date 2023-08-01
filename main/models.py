@@ -1,9 +1,13 @@
 from django.db import models
 from froala_editor.fields import FroalaField
+import random
+import string
 # Create your models here.
 from datetime import datetime
-
-
+from django.contrib.auth.models import User
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    reset_otp = models.CharField(max_length=6, null=True, blank=True)
 class Student(models.Model):
     student_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=100, null=False)
@@ -17,6 +21,9 @@ class Student(models.Model):
                               null=False, default='profile_pics/default_student.png')
     department = models.ForeignKey(
         'Department', on_delete=models.CASCADE, null=False, blank=False, related_name='students')
+
+
+
 
     def delete(self, *args, **kwargs):
         if self.photo != 'profile_pics/default_student.png':

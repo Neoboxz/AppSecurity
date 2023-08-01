@@ -2,6 +2,8 @@ from django import forms
 from froala_editor.widgets import FroalaEditor
 from .models import Announcement, Assignment, Material
 
+class PasswordResetForm(forms.Form):
+    email = forms.EmailField()
 
 class AnnouncementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
