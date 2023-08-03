@@ -21,7 +21,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 import string
-
+import re
 
 from django import forms
 
@@ -83,16 +83,20 @@ def reset_password(request, reset_token):
 
             # Check if the new password matches the confirm password
             if new_password == confirm_password:
-                # Set the new password for the user
-                user.password = make_password(new_password)
-                user.save()
+                # Check if the new password meets the requirements
+                if len(new_password) >= 8 and re.search(r'[0-9]', new_password) and re.search(r'[!@#$%^&*]', new_password):
+                    # Set the new password for the user
+                    user.password = make_password(new_password)
+                    user.save()
 
-                # Password reset successful, clear the session data
-                del request.session['reset_otp']
-                del request.session['reset_email']
+                    # Password reset successful, clear the session data
+                    del request.session['reset_otp']
+                    del request.session['reset_email']
 
-                # Redirect to a success page or login page
-                return redirect('std_login')
+                    # Redirect to a success page or login page
+                    return redirect('std_login')
+                else:
+                    return render(request, 'reset_password.html', {'error': 'Password must be at least 8 characters long and contain at least one special character and one number.'})
             else:
                 return render(request, 'reset_password.html', {'error': 'Passwords do not match.'})
 
