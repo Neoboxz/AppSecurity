@@ -8,21 +8,8 @@ from django.http import HttpResponseRedirect
 from .forms import AnnouncementForm, AssignmentForm, MaterialForm
 from django import forms
 from django.core import validators
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.core.mail import send_mail
 from .models import Student, Faculty
-import random
-import pyotp
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.shortcuts import render, redirect
-from .forms import PasswordResetForm
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
-from django.http import HttpResponse
-from .models import Profile
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import authenticate, login
 
