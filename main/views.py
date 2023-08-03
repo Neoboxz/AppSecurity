@@ -53,7 +53,7 @@ def forget_password(request):
             return redirect('verify_otp')
         else:
             # User with the provided email does not exist
-            return render(request, 'forget_password.html', {'error': 'User with this email does not exist.'})
+            return render(request, 'forget_password.html', {'error': 'Incorrect Email.'})
 
     return render(request, 'forget_password.html')
 
