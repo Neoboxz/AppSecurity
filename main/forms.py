@@ -1,9 +1,57 @@
 from django import forms
 from froala_editor.widgets import FroalaEditor
-from .models import Announcement, Assignment, Material
+from .models import Announcement, Assignment, Material, Student, Faculty
+
+
+# Read passwords in symbols only
+class PasswordSpecialCharactersWidget(forms.PasswordInput):
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        if value:
+            masked_value = '*' * len(value)
+            context['widget']['value'] = masked_value
+        return context
+
+
+class StudentChangeForm(forms.ModelForm):
+    password = forms.CharField(widget=PasswordSpecialCharactersWidget, required=False,
+                               help_text='Passwords are hashed and stored')
+
+    class Meta:
+        model = Student
+        fields = '__all__'
+
+    def save(self, commit=True):
+        student = super().save(commit=False)
+        raw_password = self.cleaned_data.get('password')
+        if raw_password:
+            student.set_password(raw_password)
+        if commit:
+            student.save()
+        return student
+
+
+class FacultyChangeForm(forms.ModelForm):
+    password = forms.CharField(widget=PasswordSpecialCharactersWidget, required=False
+                               ,help_text='Passwords are hashed and stored')
+
+    class Meta:
+        model = Faculty
+        fields = '__all__'
+
+    def save(self, commit=True):
+        faculty = super().save(commit=False)
+        raw_password = self.cleaned_data.get('password')
+        if raw_password:
+            faculty.set_password(raw_password)
+        if commit:
+            faculty.save()
+        return faculty
+
 
 class PasswordResetForm(forms.Form):
     email = forms.EmailField()
+
 
 class AnnouncementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

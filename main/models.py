@@ -5,9 +5,15 @@ import string
 # Create your models here.
 from datetime import datetime
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from django.utils.html import mark_safe
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     reset_otp = models.CharField(max_length=6, null=True, blank=True)
+
+
 class Student(models.Model):
     student_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=100, null=False)
@@ -22,8 +28,13 @@ class Student(models.Model):
     department = models.ForeignKey(
         'Department', on_delete=models.CASCADE, null=False, blank=False, related_name='students')
 
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
 
+    def image_tag(self):
+        return mark_safe('<img src="%s" height="50" />' % self.photo.url)
 
+    image_tag.short_description = 'Photo'
 
     def delete(self, *args, **kwargs):
         if self.photo != 'profile_pics/default_student.png':
@@ -48,6 +59,14 @@ class Faculty(models.Model):
         default="Faculty", max_length=100, null=False, blank=True)
     photo = models.ImageField(upload_to='profile_pics', blank=True,
                               null=False, default='profile_pics/default_faculty.png')
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def image_tag(self):
+        return mark_safe('<img src="%s" height="50"/>' % self.photo.url)
+
+    image_tag.short_description = 'Photo'
 
     def delete(self, *args, **kwargs):
         if self.photo != 'profile_pics/default_faculty.png':
