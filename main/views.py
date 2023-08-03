@@ -76,21 +76,13 @@ def verify_otp(request):
         otp_entered = request.POST['otp']
         otp_stored = request.session.get('reset_otp')
         if otp_entered == otp_stored:
-            user = request.user
-            try:
-                # Attempt to get the Profile object for the User
-                profile = user.profile
-            except Profile.DoesNotExist:
-                # If the Profile object doesn't exist, create one
-                Profile.objects.create(user=user)
-
             # Continue with your OTP verification and password reset logic
             return redirect('reset_password', reset_token=otp_entered)
         else:
             return render(request, 'verify_otp.html', {'error': 'Invalid OTP'})
 
     return render(request, 'verify_otp.html')
-# 111
+
 
 
 def reset_password(request, reset_token):
@@ -123,52 +115,6 @@ def reset_password(request, reset_token):
         return redirect('forget_password')
 
 
-def send_otp_email(email, otp):
-    subject = 'Password Reset OTP'
-    message = f'Your OTP for password reset is: {otp}'
-    from_email = 'your_email@example.com'  # Replace with your email address
-    send_mail(subject, message, from_email, [email])
-
-# def reset_password(request):
-#     if request.method == 'POST':
-#         form = PasswordResetForm(request.POST)
-#         if form.is_valid():
-#             email = form.cleaned_data['email']
-#             try:
-#                 user = User.objects.get(email=email)
-#                 otp = str(random.randint(100000, 999999))
-#                 user.profile.reset_otp = otp
-#                 user.profile.save()
-#                 send_otp_email(email, otp)  # Function to send OTP via email
-#                 return redirect('verify_otp')
-#             except User.DoesNotExist:
-#                 messages.error(request, 'User with this email does not exist.')
-#     else:
-#         form = PasswordResetForm()
-#
-#     return render(request, 'reset_password.html', {'form': form})
-
-# def verify_otp(request):
-#     if request.method == 'POST':
-#         otp_entered = request.POST['otp']
-#         user = request.user
-#         if user.profile.reset_otp == otp_entered:
-#             return redirect('set_new_password')
-#         else:
-#             messages.error(request, 'Invalid OTP. Please try again.')
-#     return render(request, 'verify_otp.html')
-
-def set_new_password(request):
-    if request.method == 'POST':
-        new_password = request.POST['new_password']
-        user = request.user
-        user.set_password(new_password)
-        user.profile.reset_otp = None
-        user.profile.save()
-        user.save()
-        messages.success(request, 'Password has been reset successfully.')
-        return redirect('login')
-    return render(request, 'set_new_password.html')
 
 
 def is_student_authorised(request, code):
