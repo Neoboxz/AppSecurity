@@ -84,7 +84,7 @@ def reset_password(request, reset_token):
             # Check if the new password matches the confirm password
             if new_password == confirm_password:
                 # Check if the new password meets the requirements
-                if len(new_password) >= 8 and re.search(r'[0-9]', new_password) and re.search(r'[!@#$%^&*]', new_password):
+                if len(new_password) >= 8 and re.search(r'[0-9]', new_password) and re.search(r'[!@#$%^&*]', new_password) and re.search(r'[A-Z]', new_password):
                     # Set the new password for the user
                     user.password = make_password(new_password)
                     user.save()
@@ -96,7 +96,7 @@ def reset_password(request, reset_token):
                     # Redirect to a success page or login page
                     return redirect('std_login')
                 else:
-                    return render(request, 'reset_password.html', {'error': 'Password must be at least 8 characters long and contain at least one special character and one number.'})
+                    return render(request, 'reset_password.html', {'error': 'Password must be at least 8 characters long and contain at least one special character and one number and capital letters.'})
             else:
                 return render(request, 'reset_password.html', {'error': 'Passwords do not match.'})
 
