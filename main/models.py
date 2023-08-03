@@ -7,11 +7,20 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils.html import mark_safe
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
+# Signal to create Profile for each User
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     reset_otp = models.CharField(max_length=6, null=True, blank=True)
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
 
 
 class Student(models.Model):
