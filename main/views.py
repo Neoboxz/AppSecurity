@@ -1,6 +1,4 @@
 import datetime
-from django.shortcuts import redirect, render
-from django.contrib import messages
 from .models import Student, Course, Announcement, Assignment, Submission, Material, Faculty, Department
 from django.template.defaulttags import register
 from django.db.models import Count, Q
@@ -11,8 +9,6 @@ from django.core import validators
 from .models import Student, Faculty
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth import authenticate, login
-
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
