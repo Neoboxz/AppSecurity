@@ -5,6 +5,7 @@ from main.models import Student, Course, Faculty
 from main.views import is_faculty_authorised, is_student_authorised
 from django.contrib import messages
 from django.utils import timezone
+import sys
 from django.db.models import Count, Sum, F, FloatField, Q, Prefetch
 from django.db.models.functions import Cast
 
@@ -141,15 +142,23 @@ def startQuiz(request, code, quiz_id):
         return redirect('std_login')
 
 
+def is_answer_valid(answer, max_length_bytes):
+    return sys.getsizeof(answer.encode('utf-8')) <= max_length_bytes
+
+
 def studentAnswer(request, code, quiz_id):
     if is_student_authorised(request, code):
         course = Course.objects.get(code=code)
         quiz = Quiz.objects.get(id=quiz_id)
         questions = Question.objects.filter(quiz=quiz)
         student = Student.objects.get(student_id=request.session['student_id'])
-
+        max_length_bytes = 4
         for question in questions:
             answer = request.POST.get(str(question.id))
+            print("answer is", answer)
+            if not is_answer_valid(answer, max_length_bytes):
+                messages.error(request,'Answer exceeds the maximum allowed size. If you are a student, please contact your admin or tacher in charge.')
+                return redirect('myQuizzes', code=code)
             student_answer = StudentAnswer(student=student, quiz=quiz, question=question,
                                            answer=answer, marks=question.marks if answer == question.answer else 0)
             # prevent duplicate answers & multiple attempts

@@ -28,6 +28,13 @@
       </nav>
    </div>
    <!-- navigation links end -->
+   {% if messages %}
+         <ul class="messages">
+         {% for message in messages %}
+         <li class="{{ message.tags }}" id="error_msg" style="solid rgb(255, 148, 148)">{{ message }}</li>
+         {% endfor %}
+         </ul>
+   {% endif %}
    <div class="container">
       <h6 class="fw-bold"> Active Quizzes </h6>
       <div class="table-responsive animate__animated animate__fadeIn">

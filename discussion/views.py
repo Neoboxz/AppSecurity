@@ -1,10 +1,12 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import *
+from django.contrib import messages
 from discussion.models import FacultyDiscussion, StudentDiscussion
 from main.models import Student, Faculty, Course
 from main.views import is_faculty_authorised, is_student_authorised
 from itertools import chain
 from .forms import StudentDiscussionForm, FacultyDiscussionForm
-
+from django.utils import timezone
+import re
 
 # Create your views here.
 
@@ -68,14 +70,19 @@ def send(request, code, std_id):
             form = StudentDiscussionForm(request.POST)
             if form.is_valid():
                 content = form.cleaned_data['content']
-                course = Course.objects.get(code=code)
-                try:
-                    student = Student.objects.get(student_id=std_id)
-                except:
+                print(content)
+                if validate_text(content):
+                    course = Course.objects.get(code=code)
+                    try:
+                        student = Student.objects.get(student_id=std_id)
+                    except:
+                        return redirect('discussion', code=code)
+                    StudentDiscussion.objects.create(
+                        content=content, course=course, sent_by=student)
                     return redirect('discussion', code=code)
-                StudentDiscussion.objects.create(
-                    content=content, course=course, sent_by=student)
-                return redirect('discussion', code=code)
+                else:
+                    messages.error(request, 'That word is not appropriate!')
+                    return redirect('discussion', code=code)
             else:
                 return redirect('discussion', code=code)
         else:
@@ -89,18 +96,45 @@ def send_fac(request, code, fac_id):
         if request.method == 'POST':
             form = FacultyDiscussionForm(request.POST)
             if form.is_valid():
-                content = form.cleaned_data['content']
-                course = Course.objects.get(code=code)
-                try:
-                    faculty = Faculty.objects.get(faculty_id=fac_id)
-                except:
-                    return redirect('discussion', code=code)
-                FacultyDiscussion.objects.create(
-                    content=content, course=course, sent_by=faculty)
-                return redirect('discussion', code=code)
+                if spam_prevention(request):
+                    content = form.cleaned_data['content']
+                    # print(content)
+                    if validate_text(content):
+                        course = Course.objects.get(code=code)
+                        try:
+                            faculty = Faculty.objects.get(faculty_id=fac_id)
+                        except:
+                            return redirect('discussion', code=code)
+                        FacultyDiscussion.objects.create(
+                            content=content, course=course, sent_by=faculty)
+                        return redirect('discussion', code=code)
+                    else:
+                        return redirect('discussion', {'error': 'Your message may contains vulgar or malicious language!'}, code=code)
+                else:
+                    return redirect('discussion', {'error': 'slow down there!'}, code=code)
             else:
                 return redirect('discussion', code=code)
         else:
             return redirect('discussion', code=code)
     else:
         return render(request, 'std_login.html')
+
+
+def validate_text(content):
+    txt = content.lower()
+    banned_words = ['dummy_word1', 'dummy_word2', 'nest_dummy']
+    result = True
+    for i in range(len(banned_words)):
+        if banned_words[i] in txt:
+            result = False
+    return result
+
+
+def spam_prevention(request):
+    last_refresh_time = request.session.get('last_refresh_time')
+    result = False
+    if not last_refresh_time:
+        request.session['last_refresh_time'] = timezone.now().timestamp()
+        result = True
+    return result
+

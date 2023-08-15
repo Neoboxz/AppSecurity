@@ -136,6 +136,28 @@
       } else {
          fileError.innerHTML = '';
       }
-   });
+  });
+
+file.addEventListener('change', function () {
+    const allowedFileTypes = ['pdf', 'doc', 'docx', 'png' , 'xlsx', 'xls']; //removed 'jpg' for testing sake
+    const selectedFile = file.files[0];
+    const fileType = selectedFile.type.split('/').pop().toLowerCase(); // Get the file extension
+
+    if (!allowedFileTypes.includes(fileType)) {
+        fileError.innerHTML = 'Unsupported file type! Allowed types: PDF, DOC, DOCX, PNG, XLSX, XLS';
+        fileError.style.color = 'red';
+        fileError.style.fontWeight = 'bold';
+        file.value = '';
+    } else if (selectedFile.size > 10000000) {
+        fileError.innerHTML = 'File size must be less than 10MB';
+        fileError.style.color = 'red';
+        fileError.style.fontWeight = 'bold';
+        file.value = '';
+    } else {
+        fileError.innerHTML = '';
+    }
+});
+
+
 </script>
 {% endblock %}

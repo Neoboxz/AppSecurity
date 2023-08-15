@@ -1,5 +1,4 @@
 {% extends 'index.html' %}
-{% load static %}
 {% block title %}Discussion | {{ course.name }} {% endblock title %}
 {% block profile %}
 {% if faculty  %} {% url 'profile' faculty.faculty_id %}
@@ -50,22 +49,28 @@
          <form action="{% url 'send_fac' course.code faculty.faculty_id %}" method="POST">
             {% csrf_token %}
             <div class="input-group mb-3 p-3">
-               {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" required> {% endcomment %}
+               {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" id="fac_button_content" required> {% endcomment %}
                {{ form.content }}
-               <button class="btn btn-primary mx-2 rounded" type="submit">Send</button>
+               <button class="btn btn-primary mx-2 rounded" type="submit" id = "fac_button">Send</button>
             </div>
          </form>
          {% else %}
-         <form action="{% url 'send' course.code student.student_id %}" method="POST">
+         <form action="{% url 'send' course.code student.student_id %}" id="student" method="POST">
             {% csrf_token %}
             <div class="input-group mb-3 p-3">
-               {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" required> {% endcomment %}
+               {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" id="student_content" required> {% endcomment %}
                {{ form.content }}
                <button class="btn btn-primary mx-2 rounded" type="submit" id="button">Send</button>
             </div>
+            {% if messages %}
+                  <ul class="messages">
+                  {% for message in messages %}
+                  <li class="{{ message.tags }}" id="error_msg" style="solid rgb(255, 148, 148)">{{ message }}</li>
+                  {% endfor %}
+                  </ul>
+            {% endif %}
          </form>
          {% endif %}
-
          {% if discussions %}
          <p class="fst-italic text-muted">Showing newest first</p>
          {% for discussion in discussions %}
@@ -99,5 +104,55 @@
       </div>
    </div>
 </div>
+
+<script>
+  // JavaScript function to disable and enable the send button
+  function disableAndEnableSendButton(buttonId) {
+    const sendButton = document.getElementById(buttonId);
+    sendButton.disabled = true;
+    localStorage.setItem(buttonId + '-disabled', Date.now());
+    setTimeout(function () {
+      sendButton.disabled = false;
+      localStorage.removeItem(buttonId + '-disabled');
+    }, 5000); // 5 seconds delay
+  }
+
+  // Function to check if the button should be disabled on page load
+  function checkButtonStatus(buttonId) {
+    const sendButton = document.getElementById(buttonId);
+    const timestamp = localStorage.getItem(buttonId + '-disabled');
+    if (timestamp) {
+      const currentTime = Date.now();
+      const difference = currentTime - parseInt(timestamp);
+      if (difference < 5000) {
+        sendButton.disabled = true;
+        setTimeout(function () {
+          sendButton.disabled = false;
+          localStorage.removeItem(buttonId + '-disabled');
+        }, 5000 - difference);
+      }
+    }
+  }
+
+  {% if faculty %}
+    // Add event listener to the faculty form submission
+    document.getElementById('fac_button').addEventListener('click', function() {
+      disableAndEnableSendButton('fac_button');
+    });
+    // Check button status on page load for faculty
+    checkButtonStatus('fac_button');
+  {% else %}
+    // Add event listener to the student form submission
+    document.getElementById('button').addEventListener('click', function() {
+      disableAndEnableSendButton('button');
+    });
+    // Check button status on page load for students
+    checkButtonStatus('button');
+  {% endif %}
+
+</script>
+
+
 {% endblock %}
+
 

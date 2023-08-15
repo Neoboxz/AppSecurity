@@ -9,7 +9,9 @@ from django.contrib.auth.hashers import make_password
 from django.utils.html import mark_safe
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+import os
+from django.core.exceptions import ValidationError
+from django.db import models
 
 # Signal to create Profile for each User
 class Profile(models.Model):
@@ -178,10 +180,15 @@ class Assignment(models.Model):
 
 
 class Submission(models.Model):
+    def validate_file_extension(value):
+        valid_extensions = ['.pdf', '.doc', '.docx', '.png', '.xlsx', '.xls']
+        ext = os.path.splitext(value.file_name())[1]
+        if ext.lower() not in valid_extensions:
+            raise ValidationError("Invalid file type. Only PDF, DOC, and DOCX files are allowed.")
     assignment = models.ForeignKey(
         Assignment, on_delete=models.CASCADE, null=False)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=False)
-    file = models.FileField(upload_to='submissions/', null=True,)
+    file = models.FileField(upload_to='submissions/', null=True, validators=[validate_file_extension])
     datetime = models.DateTimeField(auto_now_add=True, null=False)
     marks = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True)
