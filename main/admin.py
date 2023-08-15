@@ -17,10 +17,9 @@ admin.site.register(Announcement)
 class StudentAdmin(admin.ModelAdmin):
     form = StudentChangeForm
     list_display = ('image_tag', 'student_id', 'name', 'email', 'department')
-    search_fields = ('student_id', 'name', 'email')
+    search_fields = ('name', 'email')
     readonly_fields = ('role',)
     fields = ('student_id', 'name', 'email', 'password', 'role', 'course', 'photo', 'department')
-
     def display_circular_photo(self, obj):
         return format_html('<div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden;"><img src="{}" style="width: 100%; height: 100%;" /></div>', obj.photo.url)
 
@@ -31,7 +30,7 @@ class StudentAdmin(admin.ModelAdmin):
 class FacultyAdmin(admin.ModelAdmin):
     form = FacultyChangeForm
     list_display = ('image_tag', 'faculty_id', 'name', 'email', 'role')
-    search_fields = ('faculty_id', 'name', 'email')
+    search_fields = ('name', 'email')
     readonly_fields = ('role',)
     fields = ('faculty_id', 'name', 'email', 'password', 'department', 'role', 'photo')
 
