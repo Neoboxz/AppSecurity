@@ -43,7 +43,10 @@ class Student(models.Model):
         self.password = make_password(raw_password)
 
     def image_tag(self):
-        return mark_safe('<img src="%s" height="50" />' % self.photo.url)
+        if self.photo:
+            return mark_safe('<img src="%s" height="50" />' % self.photo.url)
+        else:
+            return mark_safe('<img src="%s" height="50" />' % self._meta.get_field('photo').get_default())
 
     image_tag.short_description = 'Photo'
 
@@ -75,7 +78,10 @@ class Faculty(models.Model):
         self.password = make_password(raw_password)
 
     def image_tag(self):
-        return mark_safe('<img src="%s" height="50"/>' % self.photo.url)
+        if self.photo:
+            return mark_safe('<img src="%s" height="50"/>' % self.photo.url)
+        else:
+            return mark_safe('<img src="%s" height="50" />' % self._meta.get_field('photo').get_default())
 
     image_tag.short_description = 'Photo'
 
