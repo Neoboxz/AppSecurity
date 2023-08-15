@@ -48,6 +48,9 @@ class Student(models.Model):
         else:
             return mark_safe('<img src="%s" height="50" />' % self._meta.get_field('photo').get_default())
 
+    # def image_tag(self):
+    #     return mark_safe('<img src="%s" height="50"/>' % self.photo.url)
+
     image_tag.short_description = 'Photo'
 
     def delete(self, *args, **kwargs):
@@ -77,9 +80,12 @@ class Faculty(models.Model):
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
 
+    # def image_tag(self):
+    #     return mark_safe('<img src="%s" height="50"/>' % self.photo.url)
+
     def image_tag(self):
         if self.photo:
-            return mark_safe('<img src="%s" height="50"/>' % self.photo.url)
+            return mark_safe('<img src="%s" height="50" />' % self.photo.url)
         else:
             return mark_safe('<img src="%s" height="50" />' % self._meta.get_field('photo').get_default())
 
