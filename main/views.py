@@ -760,45 +760,90 @@ def changePhotoPrompt(request):
         return redirect('std_login')
 
 
+# def changePassword(request):
+#     if request.session.get('student_id'):
+#         student = Student.objects.get(student_id=request.session['student_id'])
+#         if request.method == 'POST':
+#             if student.password == request.POST['oldPassword']:
+#                 # New and confirm password check is done in the client side
+#                 student.password = request.POST['newPassword']
+#                 student.save()
+#                 messages.success(request, 'Password was changed successfully')
+#                 return redirect('/profile/' + str(student.student_id))
+#             else:
+#                 messages.error(
+#                     request, 'Password is incorrect. Please try again')
+#                 return redirect('/changePassword/')
+#         else:
+#             return render(request, 'main/changePassword.html', {'student': student})
+#     else:
+#         return redirect('std_login')
+
+
 def changePassword(request):
     if request.session.get('student_id'):
-        student = Student.objects.get(
-            student_id=request.session['student_id'])
+        student = Student.objects.get(student_id=request.session['student_id'])
         if request.method == 'POST':
-            if student.password == request.POST['oldPassword']:
-                # New and confirm password check is done in the client side
-                student.password = request.POST['newPassword']
+            old_password = request.POST['oldPassword']
+            new_password = request.POST['newPassword']
+
+            # Compare old password hash with stored hash using check_password()
+            if not check_password(old_password, student.password):
+                messages.error(request, 'Password is incorrect. Please try again')
+                return redirect('/changePassword/')
+            else:
+                # Hash the new password using make_password() before saving
+                hashed_new_password = make_password(new_password)
+                student.password = hashed_new_password
                 student.save()
                 messages.success(request, 'Password was changed successfully')
                 return redirect('/profile/' + str(student.student_id))
-            else:
-                messages.error(
-                    request, 'Password is incorrect. Please try again')
-                return redirect('/changePassword/')
         else:
             return render(request, 'main/changePassword.html', {'student': student})
     else:
         return redirect('std_login')
 
 
+# def changePasswordFaculty(request):
+#     if request.session.get('faculty_id'):
+#         faculty = Faculty.objects.get(
+#             faculty_id=request.session['faculty_id'])
+#         if request.method == 'POST':
+#             if faculty.password == request.POST['oldPassword']:
+#                 # New and confirm password check is done in the client side
+#                 faculty.password = request.POST['newPassword']
+#                 faculty.save()
+#                 messages.success(request, 'Password was changed successfully')
+#                 return redirect('/facultyProfile/' + str(faculty.faculty_id))
+#             else:
+#                 print('error')
+#                 messages.error(
+#                     request, 'Password is incorrect. Please try again')
+#                 return redirect('/changePasswordFaculty/')
+#         else:
+#             print(faculty)
+#             return render(request, 'main/changePasswordFaculty.html', {'faculty': faculty})
+#     else:
+#         return redirect('std_login')
+
 def changePasswordFaculty(request):
     if request.session.get('faculty_id'):
-        faculty = Faculty.objects.get(
-            faculty_id=request.session['faculty_id'])
+        faculty = Faculty.objects.get(faculty_id=request.session['faculty_id'])
         if request.method == 'POST':
-            if faculty.password == request.POST['oldPassword']:
-                # New and confirm password check is done in the client side
-                faculty.password = request.POST['newPassword']
+            old_password = request.POST['oldPassword']
+            new_password = request.POST['newPassword']
+
+            if not check_password(old_password, faculty.password):
+                messages.error(request, 'Password is incorrect. Please try again')
+                return redirect('/changePasswordFaculty/')
+            else:
+                # Hash the new password using make_password()
+                hashed_new_password = make_password(new_password)
+                faculty.password = hashed_new_password
                 faculty.save()
                 messages.success(request, 'Password was changed successfully')
                 return redirect('/facultyProfile/' + str(faculty.faculty_id))
-            else:
-                print('error')
-                messages.error(
-                    request, 'Password is incorrect. Please try again')
-                return redirect('/changePasswordFaculty/')
         else:
-            print(faculty)
             return render(request, 'main/changePasswordFaculty.html', {'faculty': faculty})
     else:
         return redirect('std_login')
