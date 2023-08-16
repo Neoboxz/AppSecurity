@@ -6,6 +6,7 @@ from main.views import is_faculty_authorised, is_student_authorised
 from itertools import chain
 from .forms import StudentDiscussionForm, FacultyDiscussionForm
 from django.utils import timezone
+from django.shortcuts import redirect, reverse
 import re
 
 # Create your views here.
@@ -111,7 +112,7 @@ def send_fac(request, code, fac_id):
                     else:
                         return redirect('discussion', {'error': 'Your message may contains vulgar or malicious language!'}, code=code)
                 else:
-                    return redirect('discussion', {'error': 'slow down there!'}, code=code)
+                    return redirect(reverse('discussion', kwargs={'error': 'slow down there!'}), code=code)
             else:
                 return redirect('discussion', code=code)
         else:
